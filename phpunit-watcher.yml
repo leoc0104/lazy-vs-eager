@@ -1,0 +1,10 @@
+watch:
+  directories:
+    - tests
+  fileMask: '*.php'
+notifications:
+  passingTests: false
+  failingTests: true
+phpunit:
+  binaryPath: vendor/bin/phpunit
+  arguments: '--testdox --group nome-do-grupo'
