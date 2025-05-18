@@ -188,7 +188,7 @@ class PerformanceTest extends TestCase
 
         // Eager Loading
         $start = microtime(true);
-        $users = \App\Models\User::with('posts')->get();
+        $users = User::with('posts')->get();
 
         foreach ($users as $user) {
             $user->posts->count();
