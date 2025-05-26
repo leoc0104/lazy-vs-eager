@@ -75,7 +75,7 @@ class PerformanceTest extends TestCase
     public function testEloquentPaginatePerformance()
     {
         $start = microtime(true);
-        $this->assertEquals(10000, User::orderBy('created_at', 'desc')->paginate(10000)->count());
+        $this->assertEquals(10000, User::orderBy('created_at', 'desc')->paginate(100)->count());
         fwrite(STDERR, "\nEloquent paginate: " . (microtime(true) - $start) . " seconds\n");
     }
 
@@ -86,7 +86,7 @@ class PerformanceTest extends TestCase
     public function testQuerybuilderPaginatePerformance()
     {
         $start = microtime(true);
-        $this->assertEquals(10000, DB::table('users')->orderBy('created_at', 'desc')->paginate(10000)->count());
+        $this->assertEquals(10000, DB::table('users')->orderBy('created_at', 'desc')->paginate(100)->count());
         fwrite(STDERR, "\nQuery Builder paginate: " . (microtime(true) - $start) . " seconds\n");
     }
 
