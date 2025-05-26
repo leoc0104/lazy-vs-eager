@@ -19,33 +19,36 @@ class PerformanceTest extends TestCase
         
         $this->artisan('migrate:fresh');
         
-        User::factory()->count(100)->create()->each(function ($user) {
+        User::factory()->count(10000)->create()->each(function ($user) {
             Post::factory()->count(10)->create(['user_id' => $user->id]);
         });
     }
 
     #[Group('performance')]
     #[Group('eloquent')]
+    #[Group('selectAll')]
     #[Group('selectAllEloquent')]
     public function testEloquentAllPerformance()
     {
         $start = microtime(true);
-        $this->assertEquals(100, User::all()->count());
+        $this->assertEquals(10000, User::all()->count());
         fwrite(STDERR, "\nEloquent all: " . (microtime(true) - $start) . " seconds\n");
     }
 
     #[Group('performance')]
     #[Group('querybuilder')]
+    #[Group('selectAll')]
     #[Group('selectAllQueryBuilder')]
     public function testQuerybuilderAllPerformance()
     {
         $start = microtime(true);
-        $this->assertEquals(100, DB::table('users')->get()->count());
+        $this->assertEquals(10000, DB::table('users')->get()->count());
         fwrite(STDERR, "\nQuery Builder all: " . (microtime(true) - $start) . " seconds\n");
     }
 
     #[Group('performance')]
     #[Group('eloquent')]
+    #[Group('selectFilter')]
     #[Group('selectFilterEloquent')]
     public function testEloquentFilterPerformance()
     {
@@ -56,6 +59,7 @@ class PerformanceTest extends TestCase
 
     #[Group('performance')]
     #[Group('querybuilder')]
+    #[Group('selectFilter')]
     #[Group('selectFilterQueryBuilder')]
     public function testQuerybuilderFilterPerformance()
     {
@@ -66,26 +70,29 @@ class PerformanceTest extends TestCase
 
     #[Group('performance')]
     #[Group('eloquent')]
+    #[Group('selectPaginate')]
     #[Group('selectPaginateEloquent')]
     public function testEloquentPaginatePerformance()
     {
         $start = microtime(true);
-        $this->assertEquals(100, User::orderBy('created_at', 'desc')->paginate(100)->count());
+        $this->assertEquals(10000, User::orderBy('created_at', 'desc')->paginate(10000)->count());
         fwrite(STDERR, "\nEloquent paginate: " . (microtime(true) - $start) . " seconds\n");
     }
 
     #[Group('performance')]
     #[Group('querybuilder')]
+    #[Group('selectPaginate')]
     #[Group('selectPaginateQueryBuilder')]
     public function testQuerybuilderPaginatePerformance()
     {
         $start = microtime(true);
-        $this->assertEquals(100, DB::table('users')->orderBy('created_at', 'desc')->paginate(100)->count());
+        $this->assertEquals(10000, DB::table('users')->orderBy('created_at', 'desc')->paginate(10000)->count());
         fwrite(STDERR, "\nQuery Builder paginate: " . (microtime(true) - $start) . " seconds\n");
     }
 
     #[Group('performance')]
     #[Group('eloquent')]
+    #[Group('insert')]
     #[Group('insertEloquent')]
     public function testEloquentInsertPerformance()
     {
@@ -109,6 +116,7 @@ class PerformanceTest extends TestCase
 
     #[Group('performance')]
     #[Group('querybuilder')]
+    #[Group('insert')]
     #[Group('insertQueryBuilder')]
     public function testQuerybuilderInsertPerformance()
     {
@@ -130,6 +138,7 @@ class PerformanceTest extends TestCase
 
     #[Group('performance')]
     #[Group('eloquent')]
+    #[Group('update')]
     #[Group('updateEloquent')]
     public function testEloquentUpdatePerformance()
     {
@@ -141,6 +150,7 @@ class PerformanceTest extends TestCase
 
     #[Group('performance')]
     #[Group('querybuilder')]
+    #[Group('update')]
     #[Group('updateQueryBuilder')]
     public function testQuerybuilderUpdatePerformance()
     {
@@ -152,6 +162,7 @@ class PerformanceTest extends TestCase
 
     #[Group('performance')]
     #[Group('eloquent')]
+    #[Group('delete')]
     #[Group('deleteEloquent')]
     public function testEloquentDeletePerformance()
     {
@@ -163,6 +174,7 @@ class PerformanceTest extends TestCase
 
     #[Group('performance')]
     #[Group('querybuilder')]
+    #[Group('delete')]
     #[Group('deleteQueryBuilder')]
     public function testQuerybuilderDeletePerformance()
     {
@@ -213,7 +225,7 @@ class PerformanceTest extends TestCase
             ->groupBy('users.id')
             ->get();
 
-        $this->assertEquals(100, $result->count());
+        $this->assertEquals(10000, $result->count());
         fwrite(STDERR, "\nJoin + Aggregation: " . (microtime(true) - $start) . " seconds\n");
     }
 
