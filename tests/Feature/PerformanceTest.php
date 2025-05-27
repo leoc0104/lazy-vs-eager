@@ -257,31 +257,30 @@ class PerformanceTest extends TestCase
     }
 
     #[Group('performance')]
-    #[Group('eloquent')]
-    #[Group('updateBatchVsIndividualEloquent')]
-    public function testUpdateBatchVsIndividualPerformance()
+    #[Group('querybuilderVsSqlRaw')]
+    public function testQueryBuilderVsSqlRawPerformance()
     {
-        $user = User::first();
-
-        // Individual update
-        $posts = $user->posts;
+        // Query Builder
         $start = microtime(true);
-        
-        foreach ($posts as $post) {
-            $post->update(['title' => 'Updated Title']);
-        }
+        $resultQueryBuilder = DB::table('users')
+            ->join('posts', 'users.id', '=', 'posts.user_id')
+            ->select('users.id', DB::raw('count(posts.id) as post_count'))
+            ->groupBy('users.id')
+            ->get();
+        $queryBuilderTime = microtime(true) - $start;
 
-        $individualTime = microtime(true) - $start;
-
-        // Batch update
-        $posts = $user->posts;
+        // SQL Raw
         $start = microtime(true);
-        Post::where('user_id', $user->id)->update(['title' => 'Batch Updated Title']);
+        $resultSqlRaw = DB::select('
+            SELECT users.id, COUNT(posts.id) as post_count
+            FROM users
+            JOIN posts ON users.id = posts.user_id
+            GROUP BY users.id
+        ');
+        $sqlRawTime = microtime(true) - $start;
 
-        $batchTime = microtime(true) - $start;
-
-        fwrite(STDERR, "\nUpdate Individual: {$individualTime} seconds\n");
-        fwrite(STDERR, "Update Batch: {$batchTime} seconds\n");
-        $this->assertTrue($batchTime < $individualTime);
+        fwrite(STDERR, "\nQuery Builder: {$queryBuilderTime} seconds\n");
+        fwrite(STDERR, "SQL Raw: {$sqlRawTime} seconds\n");
+        $this->assertEquals(count($resultQueryBuilder), count($resultSqlRaw));
     }
 } 
