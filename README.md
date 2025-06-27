@@ -187,5 +187,5 @@ This project is developed for educational purposes as part of an undergraduate t
 ---
 
 **Author**: Leonardo Camargo  
-**Institution**: Fatec Bauru - Database Technology Course
+**Institution**: Fatec Bauru - Database Technology Course  
 **Year**: 2025
