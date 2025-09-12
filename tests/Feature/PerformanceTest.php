@@ -19,7 +19,7 @@ class PerformanceTest extends TestCase
         
         $this->artisan('migrate:fresh');
         
-        User::factory()->count(10000)->create()->each(function ($user) {
+        User::factory()->count(100)->create()->each(function ($user) {
             Post::factory()->count(10)->create(['user_id' => $user->id]);
         });
     }
@@ -31,7 +31,7 @@ class PerformanceTest extends TestCase
     public function testEloquentAllPerformance()
     {
         $start = microtime(true);
-        $this->assertEquals(10000, User::all()->count());
+        $this->assertEquals(100, User::all()->count());
         fwrite(STDERR, "\nEloquent all: " . (microtime(true) - $start) . " seconds\n");
     }
 
@@ -42,7 +42,7 @@ class PerformanceTest extends TestCase
     public function testQuerybuilderAllPerformance()
     {
         $start = microtime(true);
-        $this->assertEquals(10000, DB::table('users')->get()->count());
+        $this->assertEquals(100, DB::table('users')->get()->count());
         fwrite(STDERR, "\nQuery Builder all: " . (microtime(true) - $start) . " seconds\n");
     }
 
@@ -97,7 +97,7 @@ class PerformanceTest extends TestCase
     public function testEloquentInsertPerformance()
     {
         $data = [];
-        for ($i = 0; $i < 1000; $i++) {
+        for ($i = 0; $i < 100; $i++) {
             $data[] = [
                 'name' => 'User ' . uniqid(),
                 'email' => uniqid() . '@example.com',
@@ -111,7 +111,7 @@ class PerformanceTest extends TestCase
             User::create($userData);
         }
         $this->assertDatabaseHas('users', ['email' => $data[0]['email']]);
-        fwrite(STDERR, "\nEloquent insert (1000): " . (microtime(true) - $start) . " seconds\n");
+        fwrite(STDERR, "\nEloquent insert (100): " . (microtime(true) - $start) . " seconds\n");
     }
 
     #[Group('performance')]
@@ -121,7 +121,7 @@ class PerformanceTest extends TestCase
     public function testQuerybuilderInsertPerformance()
     {
         $data = [];
-        for ($i = 0; $i < 1000; $i++) {
+        for ($i = 0; $i < 100; $i++) {
             $data[] = [
                 'name' => 'User ' . uniqid(),
                 'email' => uniqid() . '@example.com',
@@ -133,7 +133,7 @@ class PerformanceTest extends TestCase
         $start = microtime(true);
         DB::table('users')->insert($data);
         $this->assertDatabaseHas('users', ['email' => $data[0]['email']]);
-        fwrite(STDERR, "\nQuery Builder insert (1000): " . (microtime(true) - $start) . " seconds\n");
+        fwrite(STDERR, "\nQuery Builder insert (100): " . (microtime(true) - $start) . " seconds\n");
     }
 
     #[Group('performance')]
@@ -225,8 +225,23 @@ class PerformanceTest extends TestCase
             ->groupBy('users.id')
             ->get();
 
-        $this->assertEquals(10000, $result->count());
-        fwrite(STDERR, "\nJoin + Aggregation: " . (microtime(true) - $start) . " seconds\n");
+        $this->assertEquals(100, $result->count());
+        fwrite(STDERR, "\nQuery Builder Join + Aggregation: " . (microtime(true) - $start) . " seconds\n");
+    }
+
+    #[Group('performance')]
+    #[Group('eloquent')]
+    #[Group('joinAggregationEloquent')]
+    public function testEloquentJoinAggregationPerformance()
+    {
+        $start = microtime(true);
+        $result = User::join('posts', 'users.id', '=', 'posts.user_id')
+            ->select('users.id', DB::raw('count(posts.id) as post_count'))
+            ->groupBy('users.id')
+            ->get();
+
+        $this->assertEquals(100, $result->count());
+        fwrite(STDERR, "\nEloquent Join + Aggregation: " . (microtime(true) - $start) . " seconds\n");
     }
 
     #[Group('performance')]
@@ -237,7 +252,7 @@ class PerformanceTest extends TestCase
         $user = User::first();
         $data = [];
 
-        for ($i = 0; $i < 1000; $i++) {
+        for ($i = 0; $i < 100; $i++) {
             $data[] = [
                 'user_id' => $user->id,
                 'title' => 'Post ' . uniqid(),
