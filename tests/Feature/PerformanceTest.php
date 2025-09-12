@@ -6,6 +6,7 @@ use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Facades\DB;
+use PDO;
 use Tests\TestCase;
 use PHPUnit\Framework\Attributes\Group;
 
@@ -16,6 +17,15 @@ class PerformanceTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
+        
+        $this->artisan('cache:clear');
+
+        config(['database.connections.mysql.options' => [
+            PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false,
+        ]]);
+        
+        DB::purge();
+        DB::reconnect();
         
         $this->artisan('migrate:fresh');
         
@@ -214,6 +224,21 @@ class PerformanceTest extends TestCase
     }
 
     #[Group('performance')]
+    #[Group('eloquent')]
+    #[Group('joinAggregationEloquent')]
+    public function testEloquentJoinAggregationPerformance()
+    {
+        $start = microtime(true);
+        $result = User::join('posts', 'users.id', '=', 'posts.user_id')
+            ->select('users.id', DB::raw('count(posts.id) as post_count'))
+            ->groupBy('users.id')
+            ->get();
+
+        $this->assertEquals(1000, $result->count());
+        fwrite(STDERR, "\nEloquent Join + Aggregation: " . (microtime(true) - $start) . " seconds\n");
+    }
+
+    #[Group('performance')]
     #[Group('querybuilder')]
     #[Group('joinAggregationQueryBuilder')]
     public function testQuerybuilderJoinAggregationPerformance()
@@ -227,21 +252,6 @@ class PerformanceTest extends TestCase
 
         $this->assertEquals(1000, $result->count());
         fwrite(STDERR, "\nQuery Builder Join + Aggregation: " . (microtime(true) - $start) . " seconds\n");
-    }
-
-    #[Group('performance')]
-    #[Group('eloquent')]
-    #[Group('joinAggregationEloquent')]
-    public function testEloquentJoinAggregationPerformance()
-    {
-        $start = microtime(true);
-        $result = User::join('posts', 'users.id', '=', 'posts.user_id')
-            ->select('users.id', DB::raw('count(posts.id) as post_count'))
-            ->groupBy('users.id')
-            ->get();
-
-        $this->assertEquals(1000, $result->count());
-        fwrite(STDERR, "\nEloquent Join + Aggregation: " . (microtime(true) - $start) . " seconds\n");
     }
 
     #[Group('performance')]
