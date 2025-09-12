@@ -308,4 +308,4 @@ class PerformanceTest extends TestCase
         fwrite(STDERR, "SQL Raw: {$sqlRawTime} seconds\n");
         $this->assertEquals(count($resultQueryBuilder), count($resultSqlRaw));
     }
-} 
+}
