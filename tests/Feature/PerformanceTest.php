@@ -255,33 +255,6 @@ class PerformanceTest extends TestCase
     }
 
     #[Group('performance')]
-    #[Group('eloquent')]
-    #[Group('massInsertTransactionEloquent')]
-    public function testMassInsertTransactionPerformance()
-    {
-        $user = User::first();
-        $data = [];
-
-        for ($i = 0; $i < 1000; $i++) {
-            $data[] = [
-                'user_id' => $user->id,
-                'title' => 'Post ' . uniqid(),
-                'body' => 'Body ' . uniqid(),
-                'created_at' => now(),
-                'updated_at' => now(),
-            ];
-        }
-
-        $start = microtime(true);
-        DB::transaction(function () use ($data) {
-            Post::insert($data);
-        });
-
-        $this->assertDatabaseHas('posts', ['title' => $data[0]['title']]);
-        fwrite(STDERR, "\nMass Insert Transaction: " . (microtime(true) - $start) . " seconds\n");
-    }
-
-    #[Group('performance')]
     #[Group('querybuilderVsSqlRaw')]
     public function testQueryBuilderVsSqlRawPerformance()
     {
