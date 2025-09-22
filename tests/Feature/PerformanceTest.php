@@ -19,10 +19,6 @@ class PerformanceTest extends TestCase
         parent::setUp();
         
         $this->artisan('cache:clear');
-
-        config(['database.connections.mysql.options' => [
-            PDO::MYSQL_ATTR_USE_BUFFERED_QUERY => false,
-        ]]);
         
         DB::purge();
         DB::reconnect();
